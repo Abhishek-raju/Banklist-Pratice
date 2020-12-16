@@ -1,7 +1,5 @@
 "use strict";
 
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
 // BANKIST APP
 
 // Data
@@ -61,10 +59,76 @@ const inputLoanAmount = document.querySelector(".form__input--loan-amount");
 const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
 
+//Display Movements
+const displayMovements = function (movements) {
+  containerMovements.innerHTML = " ";
+  //.textContent=0;
+
+  movements.forEach((mov, i) => {
+    const type = mov > 0 ? "deposit" : "withdrawal";
+
+    const html = `
+    <div class="movements__row">
+                <div class="movements__type movements__type--${type}">${
+      i + 1
+    } ${type}</div>
+                <div class="movements__value">${mov}</div>
+            </div>
+    `;
+
+    containerMovements.insertAdjacentHTML("afterbegin", html);
+  });
+};
+
+displayMovements(account1.movements);
+
+//Display Balance
+const calcDisplayBalance = function (movements) {
+  const balance = movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${balance} EUR`;
+};
+
+//Display Summary
+const calcDisplaySummary = function (movements) {
+  const incomes = movements
+    .filter((mov) => mov > 0)
+    .reduce((acc, mov) => acc + mov);
+
+  const expend = Math.abs(
+    movements.filter((mov) => mov < 0).reduce((acc, mov) => acc + mov)
+  );
+
+  const interest = movements
+    .filter((mov) => mov > 0)
+    .map((mov) => (mov * 1.2) / 100)
+    .reduce((acc, mov) => acc + mov, 0);
+
+  labelSumIn.textContent = `${incomes}$`;
+  labelSumOut.textContent = `${expend}$`;
+  labelSumInterest.textContent = `${interest}$`;
+};
+
+calcDisplaySummary(account1.movements);
+
+//Display Username
+const createUsernames = function (accs) {
+  accs.forEach(function (acc) {
+    acc.user = acc.owner
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word[0])
+      .join("");
+  });
+};
+
+createUsernames(accounts);
+
+//console.log(max);
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
-
+/*
 const currencies = new Map([
   ["USD", "United States dollar"],
   ["EUR", "Euro"],
@@ -72,5 +136,42 @@ const currencies = new Map([
 ]);
 
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+*/
+/*
+const eurToUsd = 1.1;
 
-console.log("hello");
+let arr = account1.movements
+  .filter((mov) => mov > 0)
+  .map((mov) => mov * eurToUsd)
+  .reduce((acc, mov) => acc + mov);
+console.log(arr);
+*/
+
+let currentAccount;
+
+btnLogin.addEventListener("click", function (e) {
+  //prevent form from reloading
+  e.preventDefault();
+
+  currentAccount = accounts.find(
+    (acc) => acc.user === inputLoginUsername.value
+  );
+
+  //console.log(currentAccount);
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    //Display UI and Message
+
+    labelWelcome.textContent = `Welcome back ${
+      currentAccount.owner.split(" ")[0]
+    } !!`; //Welcome back Jonas !!
+
+    containerApp.style.opacity = 100;
+
+    //Display movements
+    displayMovements(currentAccount.movements);
+    //Display balance
+    calcDisplayBalance(currentAccount.movements);
+    //Display summary
+    calcDisplaySummary(currentAccount.movements);
+  }
+});
