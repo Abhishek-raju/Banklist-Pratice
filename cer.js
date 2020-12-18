@@ -60,11 +60,13 @@ const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
 
 //Display Movements
-const displayMovements = function (movements) {
+const displayMovements = function (movements, sort = false) {
   containerMovements.innerHTML = " ";
   //.textContent=0;
 
-  movements.forEach((mov, i) => {
+  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+
+  movs.forEach((mov, i) => {
     const type = mov > 0 ? "deposit" : "withdrawal";
 
     const html = `
@@ -90,11 +92,11 @@ const calcDisplayBalance = function (acc) {
 const calcDisplaySummary = function (acc) {
   const incomes = acc.movements
     .filter((mov) => mov > 0)
-    .reduce((acc, mov) => acc + mov);
+    .reduce((acc, mov) => acc + mov, 0);
 
   const expend = acc.movements
     .filter((mov) => mov < 0)
-    .reduce((acc, mov) => acc + mov);
+    .reduce((acc, mov) => acc + mov, 0);
 
   const interest = acc.movements
     .filter((mov) => mov > 0)
@@ -142,7 +144,7 @@ const currencies = new Map([
 
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 */
-/*
+
 const eurToUsd = 1.1;
 
 let arr = account1.movements
@@ -150,7 +152,6 @@ let arr = account1.movements
   .map((mov) => mov * eurToUsd)
   .reduce((acc, mov) => acc + mov);
 console.log(arr);
-*/
 
 let currentAccount;
 
@@ -182,6 +183,26 @@ btnLogin.addEventListener("click", function (e) {
   }
 });
 
+btnLoan.addEventListener("click", function (e) {
+  e.preventDefault();
+
+  const amount = Number(inputLoanAmount.value);
+
+  if (
+    amount > 0 &&
+    currentAccount.movements.some((mov) => mov >= amount * 0.1)
+  ) {
+    //Add the Movemnt
+    currentAccount.movements.push(amount);
+
+    //Update the UI
+
+    updateUI(currentAccount);
+  }
+
+  inputLoanAmount.value = "";
+});
+
 btnTransfer.addEventListener("click", function (e) {
   e.preventDefault();
   const amount = Number(inputTransferAmount.value);
@@ -206,4 +227,33 @@ btnTransfer.addEventListener("click", function (e) {
     //Update UI
     updateUI(currentAccount);
   }
+});
+
+btnClose.addEventListener("click", function (e) {
+  e.preventDefault();
+  console.log("Delete");
+
+  if (
+    inputCloseUsername.value == currentAccount.username &&
+    Number(inputClosePin.value) == currentAccount.pin
+  ) {
+    const index = accounts.findIndex(
+      (acc) => acc.username === currentAccount.username
+    );
+
+    //Delete Account
+    accounts.splice(index, 1);
+
+    //Hide UI
+    containerApp.style.opacity = 0;
+  }
+
+  inputCloseUsername.value = inputClosePin.value = "";
+});
+
+let sorted = false;
+btnSort.addEventListener("click", function (e) {
+  e.preventDefault();
+  displayMovements(currentAccount.movements, !sorted);
+  sorted = !sorted;
 });
